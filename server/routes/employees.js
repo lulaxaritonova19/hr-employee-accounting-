@@ -2,7 +2,6 @@ const express = require('express')
 const router = express.Router()
 const pool = require('../database')
 
-//  Получить всех сотрудников
 router.get('/', async (req, res) => {
 	try {
 		const result = await pool.query('SELECT * FROM employees ORDER BY id')
@@ -13,7 +12,6 @@ router.get('/', async (req, res) => {
 	}
 })
 
-//  ДОБАВИТЬ СОТРУДНИКА (НОВЫЙ КОД!)
 router.post('/', async (req, res) => {
 	try {
 		console.log('📥 Получены данные:', req.body)
