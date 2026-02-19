@@ -2,7 +2,7 @@ const express = require('express')
 const router = express.Router()
 const pool = require('../database')
 
-// ✅ Получить всех сотрудников
+//  Получить всех сотрудников
 router.get('/', async (req, res) => {
 	try {
 		const result = await pool.query('SELECT * FROM employees ORDER BY id')
@@ -13,7 +13,7 @@ router.get('/', async (req, res) => {
 	}
 })
 
-// ✅ ДОБАВИТЬ СОТРУДНИКА (НОВЫЙ КОД!)
+//  ДОБАВИТЬ СОТРУДНИКА (НОВЫЙ КОД!)
 router.post('/', async (req, res) => {
 	try {
 		console.log('📥 Получены данные:', req.body)
@@ -70,7 +70,7 @@ router.post('/', async (req, res) => {
 	}
 })
 
-// ✅ Получить сотрудника по ID
+//  Получить сотрудника по ID
 router.get('/:id', async (req, res) => {
 	try {
 		const result = await pool.query('SELECT * FROM employees WHERE id = $1', [
@@ -85,7 +85,7 @@ router.get('/:id', async (req, res) => {
 	}
 })
 
-// ✅ Обновить сотрудника
+// Обновить сотрудника
 router.put('/:id', async (req, res) => {
 	try {
 		const {
@@ -146,7 +146,7 @@ router.put('/:id', async (req, res) => {
 	}
 })
 
-// ✅ Уволить сотрудника
+//  Уволить сотрудника
 router.put('/:id/fire', async (req, res) => {
 	try {
 		console.log(`🔄 Увольнение сотрудника с id: ${req.params.id}`)
