@@ -6,7 +6,7 @@
 
 - **Backend:** Node.js + Express
 - **База данных:** PostgreSQL
-- **Frontend:** HTML5, CSS3, JavaScript (Vanilla)
+- **Frontend:** HTML, CSS, JavaScript
 - **Дополнительно:** IMask для масок ввода
 
 ## ✨ Функционал
