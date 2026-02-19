@@ -23,16 +23,24 @@ function displayEmployees(employees) {
 		const row = document.createElement('tr')
 		if (emp.is_fired) row.classList.add('fired')
 
+		// Форматируем даты
+		const birthDate = emp.birth_date
+			? new Date(emp.birth_date).toLocaleDateString('ru-RU')
+			: ''
+		const hireDate = emp.hire_date
+			? new Date(emp.hire_date).toLocaleDateString('ru-RU')
+			: ''
+
 		row.innerHTML = `
             <td>${emp.full_name || ''}</td>
-            <td>${emp.birth_date || ''}</td>
+            <td>${birthDate}</td>
             <td>${emp.passport || ''}</td>
             <td>${emp.contact_info || ''}</td>
             <td>${emp.address || ''}</td>
             <td>${emp.department || ''}</td>
             <td>${emp.position || ''}</td>
-            <td>${emp.salary || ''} ₽</td>
-            <td>${emp.hire_date || ''}</td>
+            <td>${Number(emp.salary).toLocaleString('ru-RU')} ₽</td>
+            <td>${hireDate}</td>
             <td>
                 <span class="${emp.is_fired ? 'badge-danger' : 'badge-success'}">
                     ${emp.is_fired ? 'Уволен' : 'Работает'}
@@ -42,8 +50,8 @@ function displayEmployees(employees) {
                 ${
 									!emp.is_fired
 										? `<button onclick="editEmployee(${emp.id})">✏️ Ред.</button>
-                     <button onclick="showFireModal(${emp.id}, '${emp.full_name}')">🔴 Уволить</button>`
-										: '🚫 Заблокировано'
+                       <button onclick="showFireModal(${emp.id}, '${emp.full_name}')">🔴 Уволить</button>`
+										: '<span style="color: #999; font-style: italic;">Заблокировано</span>'
 								}
             </td>
         `
@@ -66,6 +74,10 @@ async function loadFilters() {
 		const deptSelect = document.getElementById('departmentFilter')
 		const posSelect = document.getElementById('positionFilter')
 
+		// Очищаем и добавляем опции
+		deptSelect.innerHTML = '<option value="">Все отделы</option>'
+		posSelect.innerHTML = '<option value="">Все должности</option>'
+
 		departments.forEach(dept => {
 			deptSelect.innerHTML += `<option value="${dept}">${dept}</option>`
 		})
@@ -84,9 +96,13 @@ async function applyFilters() {
 	const position = document.getElementById('positionFilter').value
 
 	let url = '/api/employees?'
-	if (search) url += `search=${search}&`
-	if (department) url += `department=${department}&`
-	if (position) url += `position=${position}`
+	const params = []
+
+	if (search) params.push(`search=${encodeURIComponent(search)}`)
+	if (department) params.push(`department=${encodeURIComponent(department)}`)
+	if (position) params.push(`position=${encodeURIComponent(position)}`)
+
+	url += params.join('&')
 
 	try {
 		const response = await fetch(url)
@@ -109,12 +125,25 @@ function closeModal() {
 
 async function confirmFire() {
 	try {
-		await fetch(`/api/employees/${currentEmployeeId}/fire`, { method: 'PUT' })
-		closeModal()
-		loadEmployees()
-		loadFilters()
+		const response = await fetch(`/api/employees/${currentEmployeeId}/fire`, {
+			method: 'PUT',
+			headers: {
+				'Content-Type': 'application/json',
+			},
+		})
+
+		if (response.ok) {
+			closeModal()
+			// Перезагружаем данные
+			await loadEmployees()
+			await loadFilters()
+		} else {
+			const error = await response.json()
+			alert('Ошибка: ' + error.error)
+		}
 	} catch (error) {
 		console.error('Ошибка увольнения:', error)
+		alert('Произошла ошибка при увольнении')
 	}
 }
 

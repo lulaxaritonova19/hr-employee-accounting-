@@ -1,0 +1,191 @@
+<!doctype html>
+<html lang="ru">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>Редактировать сотрудника</title>
+		<link rel="stylesheet" href="assets/css/style.css" />
+	</head>
+	<body>
+		<div class="container">
+			<h1>✏️ Редактировать сотрудника</h1>
+
+			<form id="editForm">
+				<input type="hidden" id="employeeId" />
+
+				<div class="form-group">
+					<label>ФИО:</label>
+					<input type="text" id="fullName" required />
+				</div>
+
+				<div class="form-group">
+					<label>Дата рождения:</label>
+					<input type="date" id="birthDate" required />
+				</div>
+
+				<div class="form-group">
+					<label>Паспорт (серия/номер):</label>
+					<input type="text" id="passport" placeholder="1234 567890" required />
+				</div>
+
+				<div class="form-group">
+					<label>Контактная информация:</label>
+					<input
+						type="text"
+						id="contactInfo"
+						placeholder="+7 (999) 123-45-67"
+						required
+					/>
+				</div>
+
+				<div class="form-group">
+					<label>Адрес проживания:</label>
+					<textarea id="address" rows="2" required></textarea>
+				</div>
+
+				<div class="form-group">
+					<label>Отдел:</label>
+					<input type="text" id="department" required />
+				</div>
+
+				<div class="form-group">
+					<label>Должность:</label>
+					<input type="text" id="position" required />
+				</div>
+
+				<div class="form-group">
+					<label>Зарплата (₽):</label>
+					<input type="number" id="salary" step="1000" required />
+				</div>
+
+				<div class="form-group">
+					<label>Дата принятия на работу:</label>
+					<input type="date" id="hireDate" required />
+				</div>
+
+				<div class="form-actions">
+					<button type="submit" class="btn btn-primary">💾 Сохранить</button>
+					<button
+						type="button"
+						class="btn"
+						onclick="window.location.href = '/'"
+					>
+						Отмена
+					</button>
+				</div>
+			</form>
+		</div>
+
+		<script>
+			// Получаем ID из URL
+			const urlParams = new URLSearchParams(window.location.search)
+			const employeeId = urlParams.get('id')
+
+			// Загружаем данные сотрудника
+			async function loadEmployee() {
+				try {
+					const response = await fetch(`/api/employees/${employeeId}`)
+					const emp = await response.json()
+
+					document.getElementById('employeeId').value = emp.id
+					document.getElementById('fullName').value = emp.full_name || ''
+					document.getElementById('birthDate').value = emp.birth_date
+						? emp.birth_date.split('T')[0]
+						: ''
+					document.getElementById('passport').value = emp.passport || ''
+					document.getElementById('contactInfo').value = emp.contact_info || ''
+					document.getElementById('address').value = emp.address || ''
+					document.getElementById('department').value = emp.department || ''
+					document.getElementById('position').value = emp.position || ''
+					document.getElementById('salary').value = emp.salary || ''
+					document.getElementById('hireDate').value = emp.hire_date
+						? emp.hire_date.split('T')[0]
+						: ''
+				} catch (error) {
+					console.error('Ошибка загрузки:', error)
+					alert('Не удалось загрузить данные сотрудника')
+				}
+			}
+
+			// Сохраняем изменения
+			document
+				.getElementById('editForm')
+				.addEventListener('submit', async e => {
+					e.preventDefault()
+
+					const employeeData = {
+						full_name: document.getElementById('fullName').value,
+						birth_date: document.getElementById('birthDate').value,
+						passport: document.getElementById('passport').value,
+						contact_info: document.getElementById('contactInfo').value,
+						address: document.getElementById('address').value,
+						department: document.getElementById('department').value,
+						position: document.getElementById('position').value,
+						salary: document.getElementById('salary').value,
+						hire_date: document.getElementById('hireDate').value,
+					}
+
+					try {
+						const response = await fetch(`/api/employees/${employeeId}`, {
+							method: 'PUT',
+							headers: { 'Content-Type': 'application/json' },
+							body: JSON.stringify(employeeData),
+						})
+
+						if (response.ok) {
+							alert('Данные сохранены!')
+							window.location.href = '/'
+						} else {
+							const error = await response.json()
+							alert('Ошибка: ' + error.error)
+						}
+					} catch (error) {
+						console.error('Ошибка сохранения:', error)
+						alert('Не удалось сохранить изменения')
+					}
+				})
+
+			// Загружаем данные при открытии страницы
+			if (employeeId) {
+				loadEmployee()
+			} else {
+				alert('ID сотрудника не указан')
+				window.location.href = '/'
+			}
+		</script>
+
+		<style>
+			.form-group {
+				margin-bottom: 15px;
+			}
+			.form-group label {
+				display: block;
+				margin-bottom: 5px;
+				font-weight: 500;
+				color: #d44e6c;
+			}
+			.form-group input,
+			.form-group textarea,
+			.form-group select {
+				width: 100%;
+				padding: 8px 12px;
+				border: 2px solid #ffe4ec;
+				border-radius: 8px;
+				font-size: 14px;
+			}
+			.form-group input:focus,
+			.form-group textarea:focus {
+				border-color: #ff69b4;
+				outline: none;
+			}
+			.form-actions {
+				display: flex;
+				gap: 10px;
+				margin-top: 20px;
+			}
+			textarea {
+				resize: vertical;
+			}
+		</style>
+	</body>
+</html>
