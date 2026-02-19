@@ -1,5 +1,4 @@
 # hr-employee-accounting-
-# HR-учет сотрудников
 
 **Стек:** JS, MySQL, HTML/CSS
 
