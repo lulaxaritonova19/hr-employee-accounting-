@@ -2,7 +2,7 @@ const express = require('express')
 const router = express.Router()
 const pool = require('../database')
 
-// Получить всех сотрудников
+// ✅ Получить всех сотрудников
 router.get('/', async (req, res) => {
 	try {
 		const result = await pool.query('SELECT * FROM employees ORDER BY id')
@@ -13,33 +13,64 @@ router.get('/', async (req, res) => {
 	}
 })
 
-// Уволить сотрудника (мягкое удаление)
-router.put('/:id/fire', async (req, res) => {
+// ✅ ДОБАВИТЬ СОТРУДНИКА (НОВЫЙ КОД!)
+router.post('/', async (req, res) => {
 	try {
-		console.log(`🔄 Увольнение сотрудника с id: ${req.params.id}`)
+		console.log('📥 Получены данные:', req.body)
 
-		const result = await pool.query(
-			'UPDATE employees SET is_fired = true, fired_date = CURRENT_DATE WHERE id = $1 RETURNING *',
-			[req.params.id],
-		)
+		const {
+			full_name,
+			birth_date,
+			passport,
+			contact_info,
+			address,
+			department,
+			position,
+			salary,
+			hire_date,
+		} = req.body
 
-		if (result.rows.length === 0) {
-			console.log('❌ Сотрудник не найден')
-			return res.status(404).json({ error: 'Сотрудник не найден' })
+		if (
+			!full_name ||
+			!birth_date ||
+			!passport ||
+			!contact_info ||
+			!address ||
+			!department ||
+			!position ||
+			!salary ||
+			!hire_date
+		) {
+			return res.status(400).json({ error: 'Все поля обязательны' })
 		}
 
-		console.log('✅ Сотрудник уволен:', result.rows[0])
-		res.json({
-			message: 'Сотрудник уволен',
-			employee: result.rows[0],
-		})
+		const result = await pool.query(
+			`INSERT INTO employees 
+             (full_name, birth_date, passport, contact_info, address, department, position, salary, hire_date) 
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) 
+             RETURNING *`,
+			[
+				full_name,
+				birth_date,
+				passport,
+				contact_info,
+				address,
+				department,
+				position,
+				salary,
+				hire_date,
+			],
+		)
+
+		console.log('✅ Сотрудник добавлен:', result.rows[0])
+		res.status(201).json(result.rows[0])
 	} catch (err) {
-		console.error('❌ Ошибка увольнения:', err)
+		console.error('❌ Ошибка:', err)
 		res.status(500).json({ error: err.message })
 	}
 })
 
-// Получить сотрудника по ID
+// ✅ Получить сотрудника по ID
 router.get('/:id', async (req, res) => {
 	try {
 		const result = await pool.query('SELECT * FROM employees WHERE id = $1', [
@@ -54,7 +85,7 @@ router.get('/:id', async (req, res) => {
 	}
 })
 
-// Обновить сотрудника
+// ✅ Обновить сотрудника
 router.put('/:id', async (req, res) => {
 	try {
 		const {
@@ -69,7 +100,6 @@ router.put('/:id', async (req, res) => {
 			hire_date,
 		} = req.body
 
-		// Проверяем, не уволен ли сотрудник
 		const checkFired = await pool.query(
 			'SELECT is_fired FROM employees WHERE id = $1',
 			[req.params.id],
@@ -116,4 +146,30 @@ router.put('/:id', async (req, res) => {
 	}
 })
 
-module.exports = router // ⬅️ module.exports должен быть в самом конце!
+// ✅ Уволить сотрудника
+router.put('/:id/fire', async (req, res) => {
+	try {
+		console.log(`🔄 Увольнение сотрудника с id: ${req.params.id}`)
+
+		const result = await pool.query(
+			'UPDATE employees SET is_fired = true, fired_date = CURRENT_DATE WHERE id = $1 RETURNING *',
+			[req.params.id],
+		)
+
+		if (result.rows.length === 0) {
+			console.log('❌ Сотрудник не найден')
+			return res.status(404).json({ error: 'Сотрудник не найден' })
+		}
+
+		console.log('✅ Сотрудник уволен:', result.rows[0])
+		res.json({
+			message: 'Сотрудник уволен',
+			employee: result.rows[0],
+		})
+	} catch (err) {
+		console.error('❌ Ошибка увольнения:', err)
+		res.status(500).json({ error: err.message })
+	}
+})
+
+module.exports = router
