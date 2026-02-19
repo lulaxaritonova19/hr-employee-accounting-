@@ -1,16 +1,20 @@
-const express = require('express');
-const router = express.Router();
-const pool = require('../database');
+const { Pool } = require('pg')
 
-// Получить всех сотрудников
-router.get('/', async (req, res) => {
-    try {
-        const result = await pool.query('SELECT * FROM employees ORDER BY id');
-        res.json(result.rows);
-    } catch (err) {
-        console.error('Ошибка:', err);
-        res.status(500).json({ error: err.message });
-    }
-});
+const pool = new Pool({
+	host: 'localhost',
+	user: 'postgres',
+	password: '0000',
+	database: 'hr_database',
+	port: 5432,
+})
 
-module.exports = router;
+pool.connect((err, client, release) => {
+	if (err) {
+		console.error('❌ Ошибка подключения:', err.stack)
+		return
+	}
+	console.log('✅ Подключено к PostgreSQL')
+	release()
+})
+
+module.exports = pool
